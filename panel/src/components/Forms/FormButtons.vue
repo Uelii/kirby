@@ -89,7 +89,7 @@ export default {
       // start setting lock on each heartbeat
       if (current === true && previous == false) {
         this.$store.dispatch("heartbeat/remove", this.listen);
-        this.$store.dispatch("heartbeat/add", this.setLock);
+        this.$store.dispatch("heartbeat/add", [this.setLock, 30]);
 
       // if user reversed changes manually,
       // remove lock and listen to lock from other users again

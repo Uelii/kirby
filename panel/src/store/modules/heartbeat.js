@@ -3,7 +3,9 @@ import Vue from "vue";
 export default {
   namespaced: true,
   state: {
-    interval: null,
+    instance: null,
+    clock: 0,
+    step: 5,
     beats: []
   },
   mutations: {
@@ -11,31 +13,34 @@ export default {
       state.beats.push(beat);
     },
     CLEAR(state) {
-      clearInterval(state.interval);
+      clearInterval(state.instance);
+      state.clock = 0;
     },
-    REMOVE(state, beat) {
-      const index = state.beats.indexOf(beat);
+    CLOCK(state) {
+      state.clock += state.step;
+    },
+    INITIALIZE(state, interval) {
+      state.instance = interval;
+    },
+    REMOVE(state, handler) {
+      const index = state.beats.map(b => b.handler).indexOf(handler);
       if (index !== -1) {
         Vue.delete(state.beats, index);
       }
-    },
-    RUN(state) {
-      clearInterval(state.interval);
-      state.interval = setInterval(() => {
-        state.beats.forEach(beat => {
-          beat();
-        });
-      }, 15 * 1000);
     }
   },
   actions: {
     add(context, beat) {
-      beat();
+      beat = {
+        handler: beat[0] || beat,
+        interval: beat[1] || context.state.step
+      };
+
+      beat.handler();
       context.commit("ADD", beat);
 
       if (context.state.beats.length === 1) {
-        context.commit("CLEAR");
-        context.commit("RUN");
+        context.dispatch("run");
       }
     },
     remove(context, beat) {
@@ -44,6 +49,17 @@ export default {
       if (context.state.beats.length < 1) {
         context.commit("CLEAR");
       }
+    },
+    run(context) {
+      context.commit("CLEAR");
+      context.commit("INITIALIZE", setInterval(() => {
+        context.commit("CLOCK");
+        context.state.beats.forEach(beat => {
+          if (context.state.clock % beat.interval === 0) {
+            beat.handler();
+          }
+        });
+      }, context.state.step * 1000));
     }
   }
 };
