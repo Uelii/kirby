@@ -172,7 +172,7 @@ export default {
     onDownload() {
       let content = "";
 
-      Object.keys(this.unlock).forEach(key => {
+      Object.keys(this.form.unlock).forEach(key => {
         content += key + ": \n" + this.form.unlock[key];
         content += "\n\n----\n\n";
       });
